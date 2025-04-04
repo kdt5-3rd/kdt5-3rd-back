@@ -12,4 +12,7 @@ app.use('/api/users', userRouter);
 // 공통 에러 핸들러
 app.use(errorHandler);
 
+// 일정 등록, 수정, 삭제 Router
+app.use('/api/tasks', taskRouter);
+
 export default app;

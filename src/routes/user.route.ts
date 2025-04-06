@@ -1,8 +1,13 @@
-import express from 'express';
-import { signupController } from '../controllers/ping.controller';
+import express from "express";
+import {
+  loginController,
+  validateTokenController,
+} from "../controllers/login.controller";
+import { verifyToken } from "../middlewares/login.middleware";
 
 const router = express.Router();
 
-router.post('/signup', signupController);
+router.post("/login", loginController);
+router.get("/validate", verifyToken, validateTokenController);
 
 export default router;

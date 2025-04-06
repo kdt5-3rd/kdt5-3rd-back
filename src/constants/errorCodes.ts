@@ -35,5 +35,10 @@ export const ERROR_CODES: Record<string, ErrorCode> = {
       status: 500,
       message: '서버 내부 오류가 발생했습니다.',
     },
+    EXTERNAL_API_ERROR: {
+      code: 'EXTERNAL_API_ERROR',
+      status: 502,
+      message: '외부 API 호출 실패',
+    },
 };
   

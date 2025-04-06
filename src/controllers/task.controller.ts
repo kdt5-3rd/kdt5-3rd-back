@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createTask, deleteTask, updateTask } from '../services/task.service';
+import { completeTask, createTask, deleteTask, postponeTask, updateTask } from '../services/task.service';
 
 export const createTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -43,6 +43,34 @@ export const deleteTaskController = async (req: Request, res: Response, next: Ne
       success: true,
       message: '일정이 삭제되었습니다.',
       data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const completeTaskController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = 1;
+    const taskId = Number(req.params.id);
+    await completeTask(userId, taskId, req.body.is_completed);
+    res.status(200).json({
+      success: true,
+      message: '일정 완료 상태가 변경되었습니다.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const postponeTaskController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId =1;
+    const taskId = Number(req.params.id);
+    await postponeTask(userId, taskId, req.body.days);
+    res.status(200).json({
+      success: true,
+      message: '일정이 미루어졌습니다.',
     });
   } catch (err) {
     next(err);

@@ -101,3 +101,44 @@ export const deleteTask = async (userId: number, taskId: number) => {
 
   return { task_id: taskId, deleted: true };
 };
+
+// 📌 일정 완료 처리
+export const completeTask = async (userId: number, taskId: number, isCompleted: boolean) => {
+  const [rows] = await db.execute('SELECT * FROM tasks WHERE task_id = ? AND user_id = ?', [taskId, userId]);
+  if ((rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      '해당 일정을 찾을 수 없습니다.'
+    );
+    throw { ...body, status };
+  }
+
+  await db.execute('UPDATE tasks SET is_completed = ? WHERE task_id = ?', [isCompleted, taskId]);
+};
+
+// 📌 일정 미루기 처리
+export const postponeTask = async (userId: number, taskId: number, days: number) => {
+  const [rows] = await db.execute('SELECT * FROM tasks WHERE task_id = ? AND user_id = ?', [taskId, userId]);
+  if ((rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      '해당 일정을 찾을 수 없습니다.'
+    );
+    throw { ...body, status };
+  }
+
+  const task = (rows as any)[0];
+  const newStart = new Date(task.start_time);
+  newStart.setDate(newStart.getDate() + days);
+
+  let newEnd = null;
+  if (task.end_time) {
+    newEnd = new Date(task.end_time);
+    newEnd.setDate(newEnd.getDate() + days);
+  }
+
+  await db.execute(
+    'UPDATE tasks SET start_time = ?, end_time = ? WHERE task_id = ?',
+    [newStart, newEnd, taskId]
+  );
+};

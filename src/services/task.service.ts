@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { dbconnect } from '../db/db';
 import { errorResponse } from '../utils/errorResponse';
 import { ERROR_CODES } from '../constants/errorCodes';
 
@@ -24,7 +24,7 @@ export const createTask = async (userId: number, data: TaskData) => {
     throw { ...body, status };
   }
 
-  const [result] = await db.execute(
+  const [result] = await dbconnect.execute(
     `INSERT INTO tasks (user_id, title, memo, start_time, end_time, address, place_name, latitude, longitude)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -46,7 +46,7 @@ export const createTask = async (userId: number, data: TaskData) => {
 
 // 📌 일정 수정
 export const updateTask = async (userId: number, taskId: number, data: TaskData) => {
-  const [rows] = await db.execute(
+  const [rows] = await dbconnect.execute(
     `SELECT * FROM tasks WHERE task_id = ? AND user_id = ?`,
     [taskId, userId]
   );
@@ -81,7 +81,7 @@ export const updateTask = async (userId: number, taskId: number, data: TaskData)
 
 // 📌 일정 삭제
 export const deleteTask = async (userId: number, taskId: number) => {
-  const [rows] = await db.execute(
+  const [rows] = await dbconnect.execute(
     `SELECT * FROM tasks WHERE task_id = ? AND user_id = ?`,
     [taskId, userId]
   );

@@ -11,6 +11,8 @@ const RATE_LIMIT_MAX_CALLS = 30;
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(express.json());
 
 const limiter = rateLimit({

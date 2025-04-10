@@ -59,7 +59,7 @@ export const updateTask = async (userId: number, taskId: number, data: TaskData)
     throw { ...body, status };
   }
 
-  await db.execute(
+  await dbconnect.execute(
     `UPDATE tasks SET title = ?, memo = ?, start_time = ?, end_time = ?, address = ?, place_name = ?, latitude = ?, longitude = ?, updated_at = CURRENT_TIMESTAMP
      WHERE task_id = ? AND user_id = ?`,
     [
@@ -94,7 +94,7 @@ export const deleteTask = async (userId: number, taskId: number) => {
     throw { ...body, status };
   }
 
-  await db.execute(
+  await dbconnect.execute(
     `DELETE FROM tasks WHERE task_id = ? AND user_id = ?`,
     [taskId, userId]
   );

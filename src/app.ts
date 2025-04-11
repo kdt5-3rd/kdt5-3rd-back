@@ -1,5 +1,6 @@
 
 import express from 'express';
+import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import userRouter from './routes/user.route';
 import pingRouter from './routes/ping.route';
@@ -10,6 +11,11 @@ const RATE_LIMIT_WINDOW_MS = 1 * 60 * 1000; // 1분
 const RATE_LIMIT_MAX_CALLS = 30;
 
 const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 
 app.set('trust proxy', 1);
 

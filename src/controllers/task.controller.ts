@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createTask, deleteTask, updateTask } from '../services/task.service';
+import { createTask, deleteTask, getTasksByDay, getTasksByMonth, getTasksByWeek, updateTask } from '../services/task.service';
 
 export const createTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -42,6 +42,51 @@ export const deleteTaskController = async (req: Request, res: Response, next: Ne
     res.status(200).json({
       success: true,
       message: '일정이 삭제되었습니다.',
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTasksByDayController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = 1;
+    const result = await getTasksByDay(userId, req.query);
+
+    res.status(200).json({
+      success: true,
+      message: '일간 일정을 조회하였습니다.',
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTasksByWeekController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = 1;
+    const result = await getTasksByWeek(userId, req.query);
+
+    res.status(200).json({
+      success: true,
+      message: '주간 일정을 조회하였습니다.',
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTasksByMonthController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = 1;
+    const result = await getTasksByMonth(userId, req.query);
+    
+    res.status(200).json({
+      success: true,
+      message: '월간 일정을 조회하였습니다.',
       data: result,
     });
   } catch (err) {

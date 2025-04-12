@@ -101,3 +101,76 @@ export const deleteTask = async (userId: number, taskId: number) => {
 
   return { task_id: taskId, deleted: true };
 };
+
+// 📅 일간 일정 조회
+export const getTasksByDay = async (userId: number, query: any) => {
+  const { year, month, day } = query;
+
+  const start = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 0, 0, 0));
+  const end = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day) + 1, 0, 0, 0));
+
+  const [rows] = await dbconnect.execute(
+    'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
+    [userId, start, end]
+  );
+
+  if ((rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      '해당 날짜의 일정을 찾을 수 없습니다.'
+    );
+    throw { ...body, status };
+  }
+
+  return rows;
+};
+
+// 📆 주간 일정 조회
+export const getTasksByWeek = async (userId: number, query: any) => {
+  const { year, month, week } = query;
+
+  const firstDayOfMonth = new Date(Number(year), Number(month) - 1, 1);
+  const firstDayWeekday = firstDayOfMonth.getDay(); // 0(일) ~ 6(토)
+
+  const offset = (week - 1) * 7;
+  const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1 + offset - firstDayWeekday, 0, 0, 0));
+  const endDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1 + offset - firstDayWeekday + 7, 0, 0, 0));
+
+  const [rows] = await dbconnect.execute(
+    'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
+    [userId, startDate, endDate]
+  );
+
+  if ((rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      '해당 주간의 일정을 찾을 수 없습니다.'
+    );
+    throw { ...body, status };
+  }
+
+  return rows;
+};
+
+// 📌 일정 조회 (월간)
+export const getTasksByMonth = async (userId: number, query: any) => {
+  const { year, month } = query;
+
+  const start = new Date(Date.UTC(Number(year), Number(month) - 1, 1, 0, 0, 0));
+  const end = new Date(Date.UTC(Number(year), Number(month), 1, 0, 0, 0));
+
+  const [rows] = await dbconnect.execute(
+    'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
+    [userId, start, end]
+  );
+
+  if ((rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      '해당 월의 일정을 찾을 수 없습니다.'
+    );
+    throw { ...body, status };
+  }
+
+  return rows;
+};

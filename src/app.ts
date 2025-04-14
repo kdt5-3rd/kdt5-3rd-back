@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import userRouter from './routes/user.route';
 import pingRouter from './routes/ping.route';
 import taskRouter from './routes/task.route';
+import searchRouter from './routes/search.route';
 import { errorHandler } from './middlewares/errorHandler';
 
 const RATE_LIMIT_WINDOW_MS = 1 * 60 * 1000; // 1분
@@ -38,6 +39,9 @@ app.use('/api/users', userRouter);
 
 // 일정 등록, 수정, 삭제
 app.use("/api/tasks", taskRouter);
+
+// 네이버 장소 검색
+app.use('/api/search', searchRouter);
 
 // 공통 에러 핸들러
 app.use(errorHandler);

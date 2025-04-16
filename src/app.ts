@@ -6,6 +6,7 @@ import userRouter from './routes/user.route';
 import pingRouter from './routes/ping.route';
 import taskRouter from './routes/task.route';
 import searchRouter from './routes/search.route';
+import joinRouter from './routes/join,route';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFoundHandler } from './middlewares/notFoundHandler';
 
@@ -49,6 +50,9 @@ app.use("/api/tasks", taskRouter);
 
 // 네이버 장소 검색
 app.use('/api/search', searchRouter);
+
+//회원가입 API Router
+app.use('/api/join', joinRouter);
 
 // 404 대응 핸들러 (이 코드는 Router 연결 코드보다 뒤에 위치해 있어야 함.)
 app.use(notFoundHandler);

@@ -6,7 +6,7 @@ import userRouter from './routes/user.route';
 import pingRouter from './routes/ping.route';
 import taskRouter from './routes/task.route';
 import searchRouter from './routes/search.route';
-import joinRouter from './routes/join,route';
+import joinRouter from './routes/join.route';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFoundHandler } from './middlewares/notFoundHandler';
 

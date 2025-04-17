@@ -56,7 +56,7 @@ export const getTasksByDayController = async (req: Request, res: Response, next:
 
     res.status(200).json({
       success: true,
-      message: '일간 일정을 조회하였습니다.',
+      message: (result as any[]).length > 0 ? '일간 일정을 조회하였습니다.' : '해당 날짜의 일정이 없습니다.',
       data: result,
     });
   } catch (err) {
@@ -71,7 +71,7 @@ export const getTasksByWeekController = async (req: Request, res: Response, next
 
     res.status(200).json({
       success: true,
-      message: '주간 일정을 조회하였습니다.',
+      message: (result as any[]).length > 0 ? '주간 일정을 조회하였습니다.' : '해당 날짜의 일정이 없습니다.',
       data: result,
     });
   } catch (err) {
@@ -86,7 +86,7 @@ export const getTasksByMonthController = async (req: Request, res: Response, nex
     
     res.status(200).json({
       success: true,
-      message: '월간 일정을 조회하였습니다.',
+      message: (result as any[]).length > 0 ? '월간 일정을 조회하였습니다.' : '해당 날짜의 일정이 없습니다.',
       data: result,
     });
   } catch (err) {

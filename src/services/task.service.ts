@@ -114,13 +114,13 @@ export const getTasksByDay = async (userId: number, query: any) => {
     [userId, start, end]
   );
 
-  if ((rows as any[]).length === 0) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.NOT_FOUND,
-      '해당 날짜의 일정을 찾을 수 없습니다.'
-    );
-    throw { ...body, status };
-  }
+  // if ((rows as any[]).length === 0) {
+  //   const { status, body } = errorResponse(
+  //     ERROR_CODES.NOT_FOUND,
+  //     '해당 날짜의 일정을 찾을 수 없습니다.'
+  //   );
+  //   throw { ...body, status };
+  // }
 
   return rows;
 };
@@ -141,13 +141,13 @@ export const getTasksByWeek = async (userId: number, query: any) => {
     [userId, startDate, endDate]
   );
 
-  if ((rows as any[]).length === 0) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.NOT_FOUND,
-      '해당 주간의 일정을 찾을 수 없습니다.'
-    );
-    throw { ...body, status };
-  }
+  // if ((rows as any[]).length === 0) {
+  //   const { status, body } = errorResponse(
+  //     ERROR_CODES.NOT_FOUND,
+  //     '해당 주간의 일정을 찾을 수 없습니다.'
+  //   );
+  //   throw { ...body, status };
+  // }
 
   return rows;
 };
@@ -164,13 +164,13 @@ export const getTasksByMonth = async (userId: number, query: any) => {
     [userId, start, end]
   );
 
-  if ((rows as any[]).length === 0) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.NOT_FOUND,
-      '해당 월의 일정을 찾을 수 없습니다.'
-    );
-    throw { ...body, status };
-  }
+  // if ((rows as any[]).length === 0) {
+  //   const { status, body } = errorResponse(
+  //     ERROR_CODES.NOT_FOUND,
+  //     '해당 월의 일정을 찾을 수 없습니다.'
+  //   );
+  //   throw { ...body, status };
+  // }
 
   return rows;
 };

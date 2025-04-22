@@ -4,7 +4,7 @@ import { pingService, registerUser } from '../services/ping.service';
 export const pingController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pingService();
-    res.status(200).json({ success: true, message: 'pong', serverTime: result });
+    res.status(200).json({ success: true, message: '퐁!', serverTime: result });
   } catch (err) {
     next(err);
   }

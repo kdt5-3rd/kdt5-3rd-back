@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { loginUserService } from "../services/login.service";
-import { generateToken } from "../utils/jwt";
 
 export const loginController = async (
   req: Request,
@@ -9,17 +8,15 @@ export const loginController = async (
 ) => {
   try {
     const { email, password } = req.body;
-    const user = await loginUserService(email, password);
-
-    const accessToken = generateToken({ id: user.id, email: user.email });
+    const { accessToken, refreshToken } = await loginUserService(
+      email,
+      password
+    );
 
     res.status(200).json({
       success: true,
-      message: "로그인에 성공했습니다.",
-      data: {
-        accessToken,
-        refreshToken: "DUMMY_REFRESH_TOKEN",
-      },
+      accessToken,
+      refreshToken,
     });
   } catch (err) {
     next(err);

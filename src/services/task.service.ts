@@ -13,6 +13,15 @@ interface TaskData {
   longitude?: number;
 }
 
+// 숫자 파서
+export const parseDecimalFields = (row: any) => {
+  return {
+    ...row,
+    latitude: row.latitude !== null ? parseFloat(row.latitude) : null,
+    longitude: row.longitude !== null ? parseFloat(row.longitude) : null,
+  };
+}
+
 // boolean 값 검사기
 export const parseToBoolean = (value: any): boolean => {
   // 값이 이미 true 또는 false인 진짜 boolean 타입이라면 그대로 반환
@@ -152,63 +161,36 @@ export const getTasksByDay = async (userId: number, query: any) => {
     [userId, start, end]
   );
 
-  // if ((rows as any[]).length === 0) {
-  //   const { status, body } = errorResponse(
-  //     ERROR_CODES.NOT_FOUND,
-  //     '해당 날짜의 일정을 찾을 수 없습니다.'
-  //   );
-  //   throw { ...body, status };
-  // }
-
-  return rows;
+  return (rows as any[]).map(parseDecimalFields);
 };
 
 // 📆 주간 일정 조회
 export const getTasksByWeek = async (userId: number, query: any) => {
   const { year, month, week } = query;
-
-  const firstDayOfMonth = new Date(Number(year), Number(month) - 1, 1);
-  const firstDayWeekday = firstDayOfMonth.getDay(); // 0(일) ~ 6(토)
-
-  const offset = (week - 1) * 7;
-  const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1 + offset - firstDayWeekday, 0, 0, 0));
-  const endDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1 + offset - firstDayWeekday + 7, 0, 0, 0));
-
-  const [rows] = await dbconnect.execute(
-    'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
-    [userId, startDate, endDate]
-  );
-
-  // if ((rows as any[]).length === 0) {
-  //   const { status, body } = errorResponse(
-  //     ERROR_CODES.NOT_FOUND,
-  //     '해당 주간의 일정을 찾을 수 없습니다.'
-  //   );
-  //   throw { ...body, status };
-  // }
-
-  return rows;
-};
-
-// 📌 일정 조회 (월간)
-export const getTasksByMonth = async (userId: number, query: any) => {
-  const { year, month } = query;
-
-  const start = new Date(Date.UTC(Number(year), Number(month) - 1, 1, 0, 0, 0));
-  const end = new Date(Date.UTC(Number(year), Number(month), 1, 0, 0, 0));
+  const baseDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
+  const start = new Date(baseDate);
+  start.setUTCDate((week - 1) * 7 + 1);
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 7);
 
   const [rows] = await dbconnect.execute(
     'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
     [userId, start, end]
   );
 
-  // if ((rows as any[]).length === 0) {
-  //   const { status, body } = errorResponse(
-  //     ERROR_CODES.NOT_FOUND,
-  //     '해당 월의 일정을 찾을 수 없습니다.'
-  //   );
-  //   throw { ...body, status };
-  // }
+  return (rows as any[]).map(parseDecimalFields);
+};
 
-  return rows;
+// 📅 월간 일정 조회
+export const getTasksByMonth = async (userId: number, query: any) => {
+  const { year, month } = query;
+  const start = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
+  const end = new Date(Date.UTC(Number(year), Number(month), 1));
+
+  const [rows] = await dbconnect.execute(
+    'SELECT * FROM tasks WHERE user_id = ? AND start_time >= ? AND start_time < ?',
+    [userId, start, end]
+  );
+
+  return (rows as any[]).map(parseDecimalFields);
 };

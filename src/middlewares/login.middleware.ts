@@ -1,27 +1,28 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+import { errorResponse } from "../utils/errorResponse";
+import { ERROR_CODES } from "../constants/errorCodes";
 
 dotenv.config();
-
 const JWT_SECRET = process.env.JWT_SECRET!;
 if (!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
 
+function sendUnauthorized(next: NextFunction, message: string) {
+  const { status, body } = errorResponse(ERROR_CODES.UNAUTHORIZED, message);
+  next({ ...body, status });
+}
+
 export const verifyToken = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers["authorization"];
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({
-      success: false,
-      code: "ERR_NO_TOKEN",
-      message: "토큰이 없습니다.",
-    });
-    return;
+    return sendUnauthorized(next, "토큰이 없습니다.");
   }
 
   try {
@@ -29,10 +30,6 @@ export const verifyToken = (
     req.user = decoded as JwtPayload & { id: number; email: string };
     next();
   } catch {
-    res.status(401).json({
-      success: false,
-      code: "ERR_INVALID_TOKEN",
-      message: "유효하지 않은 토큰입니다.",
-    });
+    return sendUnauthorized(next, "유효하지 않은 토큰입니다.");
   }
 };

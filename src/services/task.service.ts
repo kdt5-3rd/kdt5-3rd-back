@@ -1,8 +1,9 @@
 import { dbconnect } from '../db/db';
 import { errorResponse } from '../utils/errorResponse';
 import { ERROR_CODES } from '../constants/errorCodes';
+import { formatTravelFields } from '../utils/formatTravelFields';
 
-interface TaskData {
+export interface TaskData {
   title: string;
   memo?: string;
   start_time: string;
@@ -11,6 +12,18 @@ interface TaskData {
   place_name?: string;
   latitude?: number;
   longitude?: number;
+  from_lat?: number;
+  from_lng?: number;
+  from_address?: string;
+  from_place_name?: string;
+  route_mode?: string;
+  route_option?: string;
+}
+
+export interface TravelData {
+  duration: number;
+  distance: number;
+  recommended_departure_time: string;
 }
 
 // 숫자 파서
@@ -19,8 +32,10 @@ export const parseDecimalFields = (row: any) => {
     ...row,
     latitude: row.latitude !== null ? parseFloat(row.latitude) : null,
     longitude: row.longitude !== null ? parseFloat(row.longitude) : null,
+    from_lat: row.from_lat !== null ? parseFloat(row.from_lat) : null,
+    from_lng: row.from_lng !== null ? parseFloat(row.from_lng) : null
   };
-}
+};
 
 // boolean 값 검사기
 export const parseToBoolean = (value: any): boolean => {
@@ -40,51 +55,55 @@ export const parseToBoolean = (value: any): boolean => {
   return Boolean(Number(value));
 }
 
-// 📌 일정 등록
-export const createTask = async (userId: number, data: TaskData) => {
-  if (!data.title || !data.start_time) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '일정 제목과 시작 시간은 필수입니다.',
-      { fields: ['title', 'start_time'] }
-    );
-    throw { ...body, status };
-  }
+// ✅ KST 기준 현재 시간 반환
+const getCurrentKST = (): string => {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  return new Date(now.getTime() + kstOffset).toISOString().slice(0, 19).replace('T', ' ');
+};
 
-  const [result] = await dbconnect.execute(
-    `INSERT INTO tasks (user_id, title, memo, start_time, end_time, address, place_name, latitude, longitude, is_completed)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+// 📌 일정 등록
+export const createTask = async (
+  userId: number,
+  taskData: TaskData,
+  travel: TravelData
+): Promise<{ task_id: number }> => {
+  const {
+    title, memo, start_time, end_time,
+    from_lat, from_lng, from_address, from_place_name,
+    address, place_name, latitude, longitude,
+    route_mode, route_option
+  } = taskData;
+
+  const { duration, distance, recommended_departure_time } = travel;
+
+  const createdAt = getCurrentKST();
+  const updatedAt = createdAt;
+
+  const [result]: any = await dbconnect.execute(
+    `INSERT INTO tasks (
+      user_id, title, memo, start_time, end_time,
+      from_lat, from_lng, from_address, from_place_name,
+      address, place_name, latitude, longitude,
+      route_mode, route_option,
+      travel_duration, travel_distance, recommended_departure_time,
+      created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      userId,
-      data.title,
-      data.memo,
-      data.start_time,
-      data.end_time,
-      data.address,
-      data.place_name,
-      data.latitude,
-      data.longitude,
-      false,
+      userId, title, memo, start_time, end_time,
+      from_lat, from_lng, from_address, from_place_name,
+      address, place_name, latitude, longitude,
+      route_mode, route_option,
+      duration, distance, recommended_departure_time,
+      createdAt, updatedAt
     ]
   );
 
-  return {
-    task_id: (result as any).insertId,
-  };
+  return { task_id: result.insertId };
 };
 
 // 📌 일정 수정
 export const updateTask = async (userId: number, taskId: number, data: any) => {
-  if (!data.title || !data.start_time) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '일정 제목과 시작 시간은 필수입니다.',
-      { fields: ['title', 'start_time'] }
-    );
-    throw { ...body, status };
-  }
-
-  // 필드 추출 (task_id, created_at, updated_at은 무시)
   const {
     title,
     memo,
@@ -97,10 +116,13 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
     is_completed,
   } = data;
 
+  const updatedAt = getCurrentKST();
+
   let query = `
     UPDATE tasks 
     SET title = ?, memo = ?, start_time = ?, end_time = ?, 
-        address = ?, place_name = ?, latitude = ?, longitude = ?`;
+        address = ?, place_name = ?, latitude = ?, longitude = ?, 
+        updated_at = ?`;
 
   const params: any[] = [
     title,
@@ -111,6 +133,7 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
     place_name,
     latitude,
     longitude,
+    updatedAt
   ];
 
   if (is_completed !== undefined) {
@@ -161,7 +184,11 @@ export const getTasksByDay = async (userId: number, query: any) => {
     [userId, start, end]
   );
 
-  return (rows as any[]).map(parseDecimalFields);
+  const formatted = (rows as any[]).map((row) =>
+    formatTravelFields(parseDecimalFields(row)) // decimal 처리도 함께
+  );
+
+  return formatted;
 };
 
 // 📆 주간 일정 조회
@@ -193,4 +220,22 @@ export const getTasksByMonth = async (userId: number, query: any) => {
   );
 
   return (rows as any[]).map(parseDecimalFields);
+};
+
+// path 계산용 task id 검색
+export const getTaskById = async (taskId: number) => {
+  const [rows] = await dbconnect.execute(
+    `SELECT * FROM tasks WHERE task_id = ?`,
+    [taskId]
+  );
+
+  if (!rows || (rows as any[]).length === 0) {
+    const { status, body } = errorResponse(
+      ERROR_CODES.NOT_FOUND,
+      "해당 일정을 찾을 수 없습니다."
+    );
+    throw { ...body, status };
+  }
+
+  return (rows as any[])[0];
 };

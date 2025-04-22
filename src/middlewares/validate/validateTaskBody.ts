@@ -63,10 +63,10 @@ export const validateTaskBody = (req: Request, res: Response, next: NextFunction
 
     const start = new Date(start_time);
     const end = new Date(end_time);
-    if (start >= end) {
+    if (start > end) {
       const { status, body } = errorResponse(
         ERROR_CODES.INVALID_PARAM,
-        'end_time은 start_time보다 늦어야 합니다.'
+        'end_time은 start_time보다 같거나 뒤여야 합니다.'
       );
       res.status(status).json(body);
     }

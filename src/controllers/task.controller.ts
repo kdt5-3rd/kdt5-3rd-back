@@ -4,28 +4,14 @@ import { getTravelInfoDetailed } from '../utils/getTravelInfoDetailed';
 
 export const createTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
-    const taskData = req.body;
+    const userId =  1;
 
-    const travelInfo = await getTravelInfoDetailed({
-      from: {
-        lat: taskData.from_lat,
-        lng: taskData.from_lng,
-        option: taskData.route_option
-      },
-      to: {
-        lat: taskData.latitude,
-        lng: taskData.longitude
-      },
-      startTime: taskData.start_time
-    });
-
-    const insertResult = await createTask(userId, taskData, travelInfo);
+    const result = await createTask(userId, req.body);
 
     res.status(201).json({
       success: true,
       message: '일정이 등록되었습니다.',
-      data: { task_id: insertResult.task_id }
+      data: result,
     });
   } catch (err) {
     next(err);

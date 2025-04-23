@@ -4,6 +4,10 @@ import { ERROR_CODES } from '../constants/errorCodes';
 import { formatTravelFields } from '../utils/formatTravelFields';
 import { getTravelInfoDetailed } from '../utils/getTravelInfoDetailed';
 
+//
+// * 공통 타입
+//
+
 export interface TaskData {
   title: string;
   memo?: string;
@@ -25,6 +29,10 @@ export interface TravelData {
   distance: number;
   recommended_departure_time: string;
 }
+
+//
+// * 공통 유틸 함수
+//
 
 // 숫자 파서
 export const parseDecimalFields = (row: any) => {
@@ -62,87 +70,108 @@ const getCurrentKST = (): string => {
   return new Date(now.getTime() + kstOffset).toISOString().slice(0, 19).replace('T', ' ');
 };
 
-// 📌 일정 등록
-export const createTask = async (
-  userId: number,
-  taskData: TaskData,
-  travel: TravelData
-): Promise<{ task_id: number }> => {
-  const {
-    title, memo, start_time, end_time,
-    from_lat, from_lng, from_address, from_place_name,
-    address, place_name, latitude, longitude,
-    route_option
-  } = taskData;
+// 공통 유효 좌표 검사 함수
+const isValidCoord = (value: any) => typeof value === 'number' && value !== 0;
 
-  const { duration, distance, recommended_departure_time } = travel;
+// 공통 travel 계산 함수
+const computeTravelInfo = async (
+  from_lat?: number, from_lng?: number,
+  to_lat?: number, to_lng?: number,
+  route_option?: string,
+  start_time?: string
+) => {
+  if (
+    isValidCoord(from_lat) && isValidCoord(from_lng) &&
+    isValidCoord(to_lat) && isValidCoord(to_lng)
+  ) {
+    try {
+      const travelInfo = await getTravelInfoDetailed({
+        from: { lat: from_lat as number, lng: from_lng as number },
+        to: { lat: to_lat as number, lng: to_lng as number },
+        option: route_option || 'fastest',
+        startTime: start_time || new Date().toISOString(),
+      });
+
+      return {
+        travel_duration: travelInfo.duration,
+        travel_distance: travelInfo.distance,
+        recommended_departure_time: travelInfo.recommended_departure_time
+      };
+    } catch (err) {
+      console.error('[Travel 계산 실패]', err);
+    }
+  }
+
+  return {
+    travel_duration: null,
+    travel_distance: null,
+    recommended_departure_time: null
+  };
+};
+
+//
+// * 실제 함수들
+//
+
+// 📌 일정 등록
+export const createTask = async (userId: number, data: TaskData) => {
+  const {
+    title, memo, start_time, end_time, address, place_name,
+    latitude, longitude, from_lat, from_lng,
+    from_address, from_place_name, route_option,
+  } = data;
+
   const createdAt = getCurrentKST();
   const updatedAt = createdAt;
 
-  const [result]: any = await dbconnect.execute(
+  const travel = await computeTravelInfo(
+    from_lat, from_lng, latitude, longitude, route_option, start_time
+  );
+
+  const [result] = await dbconnect.execute(
     `INSERT INTO tasks (
-      user_id, title, memo, start_time, end_time,
-      from_lat, from_lng, from_address, from_place_name,
-      address, place_name, latitude, longitude,
-      route_option,
+      user_id, title, memo, start_time, end_time, address, place_name,
+      latitude, longitude, from_lat, from_lng, from_address, from_place_name, route_option,
       travel_duration, travel_distance, recommended_departure_time,
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      userId, title, memo, start_time, end_time,
-      from_lat, from_lng, from_address, from_place_name,
-      address, place_name, latitude, longitude,
-      route_option,
-      duration, distance, recommended_departure_time,
+      userId, title, memo, start_time || null, end_time || null, address, place_name,
+      latitude ?? null, longitude ?? null,
+      from_lat ?? null, from_lng ?? null, from_address, from_place_name, route_option,
+      travel.travel_duration, travel.travel_distance, travel.recommended_departure_time,
       createdAt, updatedAt
     ]
   );
 
-  return { task_id: result.insertId };
+  return { taskId: (result as any).insertId };
 };
 
 // 📌 일정 수정
 export const updateTask = async (userId: number, taskId: number, data: any) => {
   const {
-    title,
-    memo,
-    start_time,
-    end_time,
-    address,
-    place_name,
-    latitude,
-    longitude,
-    from_lat,
-    from_lng,
-    from_address,
-    from_place_name,
-    route_option,
-    is_completed
+    title, memo, start_time, end_time, address, place_name,
+    latitude, longitude, from_lat, from_lng,
+    from_address, from_place_name, route_option, is_completed
   } = data;
 
   const updatedAt = getCurrentKST();
 
-  // travel 정보 재계산 여부 판단
-  const needTravelUpdate =
-    from_lat || from_lng || latitude || longitude || route_option || start_time;
+  const travel = await computeTravelInfo(
+    from_lat, from_lng, latitude, longitude, route_option, start_time
+  );
 
-  let travelQuery = '';
   const params: any[] = [
     title, memo, start_time, end_time,
     address, place_name, latitude, longitude,
     from_lat, from_lng, from_address, from_place_name,
-    route_option
+    route_option, updatedAt
   ];
 
-  if (needTravelUpdate) {
-    const travel = await getTravelInfoDetailed({
-      from: { lat: from_lat, lng: from_lng, option: route_option },
-      to: { lat: latitude, lng: longitude },
-      startTime: start_time
-    });
-
-    travelQuery = `, travel_duration = ?, travel_distance = ?, recommended_departure_time = ?`;
-    params.push(travel.duration, travel.distance, travel.recommended_departure_time);
+  let travelQuery = '';
+  if (travel.travel_duration !== null) {
+    travelQuery = ', travel_duration = ?, travel_distance = ?, recommended_departure_time = ?';
+    params.push(travel.travel_duration, travel.travel_distance, travel.recommended_departure_time);
   }
 
   let query = `
@@ -151,8 +180,6 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
         address = ?, place_name = ?, latitude = ?, longitude = ?, 
         from_lat = ?, from_lng = ?, from_address = ?, from_place_name = ?, 
         route_option = ?, updated_at = ?${travelQuery}`;
-
-  params.push(updatedAt);
 
   if (is_completed !== undefined) {
     query += `, is_completed = ?`;

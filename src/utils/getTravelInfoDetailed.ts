@@ -13,6 +13,7 @@ export interface TravelInput {
     from: Coordinate;      // 출발지 정보
     to: Coordinate;        // 도착지 정보
     startTime: string;     // 일정 시작 시각 (ISO 형식 문자열)
+    option?: string;       // 옵션 별도 분리
 }
 
 // 📦 경로 계산 결과 데이터
@@ -31,37 +32,38 @@ export interface TravelInfoResult {
 }
 
 export const getTravelInfoDetailed = async (params: TravelInput): Promise<TravelInfoResult> => {
-    const { from, to, startTime } = params;
-  
-    const response = await axios.get(
-      'https://maps.apigw.ntruss.com/map-direction/v1/driving',
-      {
-        params: {
-          start: `${from.lng},${from.lat}`,
-          goal: `${to.lng},${to.lat}`,
-          option: from.option || 'trafast'
-        },
-        headers: {
-          'X-NCP-APIGW-API-KEY-ID': process.env.NAVER_MAP_CLIENT_ID!,
-          'X-NCP-APIGW-API-KEY': process.env.NAVER_MAP_CLIENT_SECRET!
-        }
+  const { from, to, startTime, option } = params;
+
+  const response = await axios.get(
+    'https://maps.apigw.ntruss.com/map-direction/v1/driving',
+    {
+      params: {
+        start: `${from.lng},${from.lat}`,
+        goal: `${to.lng},${to.lat}`,
+        option: option || from.option || 'trafast'
+      },
+      headers: {
+        'X-NCP-APIGW-API-KEY-ID': process.env.NAVER_MAP_CLIENT_ID!,
+        'X-NCP-APIGW-API-KEY': process.env.NAVER_MAP_CLIENT_SECRET!
       }
-    );
-  
-    const data = response.data.route?.trafast?.[0];
-    if (!data) throw new Error('경로 계산 실패');
-  
-    const duration = data.summary.duration / 1000; // 초 단위
-    const distance = data.summary.distance;        // 미터 단위
-  
-    const recommended_departure_time = new Date(
-      new Date(startTime).getTime() - duration * 1000
-    ).toISOString();
-  
-    return {
-      duration,
-      distance,
-      recommended_departure_time,
-      path: data.path
-    };
+    }
+  );
+
+  const data = response.data.route?.trafast?.[0];
+  if (!data) throw new Error('경로 계산 실패');
+
+  const duration = data.summary.duration / 1000;
+  const distance = data.summary.distance;
+
+  const departureTime = startTime || new Date().toISOString();
+  const recommended_departure_time = new Date(
+    new Date(departureTime).getTime() - duration * 1000
+  ).toISOString();
+
+  return {
+    duration,
+    distance,
+    recommended_departure_time,
+    path: data.path,
+  };
 };

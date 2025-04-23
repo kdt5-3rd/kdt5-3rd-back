@@ -73,6 +73,15 @@ const getCurrentKST = (): string => {
 // 공통 유효 좌표 검사 함수
 const isValidCoord = (value: any) => typeof value === 'number' && value !== 0;
 
+// travel route_option 제한
+const VALID_ROUTE_OPTIONS = [
+  'trafast', 'tracomfort', 'traoptimal', 'traavoidtoll', 'traavoidcaronly'
+];
+const getValidRouteOption = (option?: string) => {
+  const trimmed = option?.trim();
+  return VALID_ROUTE_OPTIONS.includes(trimmed || '') ? trimmed : 'trafast';
+};
+
 // 공통 travel 계산 함수
 const computeTravelInfo = async (
   from_lat?: number, from_lng?: number,
@@ -88,14 +97,15 @@ const computeTravelInfo = async (
       const travelInfo = await getTravelInfoDetailed({
         from: { lat: from_lat as number, lng: from_lng as number },
         to: { lat: to_lat as number, lng: to_lng as number },
-        option: route_option || 'fastest',
+        option: getValidRouteOption(route_option),
         startTime: start_time || new Date().toISOString(),
       });
 
       return {
         travel_duration: travelInfo.duration,
         travel_distance: travelInfo.distance,
-        recommended_departure_time: travelInfo.recommended_departure_time
+        recommended_departure_time: travelInfo.recommended_departure_time,
+        route_option: getValidRouteOption(route_option)
       };
     } catch (err) {
       console.error('[Travel 계산 실패]', err);
@@ -105,7 +115,8 @@ const computeTravelInfo = async (
   return {
     travel_duration: null,
     travel_distance: null,
-    recommended_departure_time: null
+    recommended_departure_time: null,
+    route_option: getValidRouteOption(route_option)
   };
 };
 
@@ -138,7 +149,8 @@ export const createTask = async (userId: number, data: TaskData) => {
     [
       userId, title, memo, start_time || null, end_time || null, address, place_name,
       latitude ?? null, longitude ?? null,
-      from_lat ?? null, from_lng ?? null, from_address, from_place_name, route_option,
+      from_lat ?? null, from_lng ?? null, from_address, from_place_name,
+      travel.route_option,
       travel.travel_duration, travel.travel_distance, travel.recommended_departure_time,
       createdAt, updatedAt
     ]
@@ -165,7 +177,7 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
     title, memo, start_time, end_time,
     address, place_name, latitude, longitude,
     from_lat, from_lng, from_address, from_place_name,
-    route_option, updatedAt
+    travel.route_option, updatedAt
   ];
 
   let travelQuery = '';
@@ -193,6 +205,7 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
 
   return { task_id: taskId, updated: true };
 };
+
 
 // 📌 일정 삭제
 export const deleteTask = async (userId: number, taskId: number) => {

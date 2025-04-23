@@ -11,7 +11,6 @@ export const createTaskController = async (req: Request, res: Response, next: Ne
       from: {
         lat: taskData.from_lat,
         lng: taskData.from_lng,
-        mode: taskData.route_mode,
         option: taskData.route_option
       },
       to: {
@@ -25,8 +24,8 @@ export const createTaskController = async (req: Request, res: Response, next: Ne
 
     res.status(201).json({
       success: true,
-      message: "일정이 등록되었습니다.",
-      data: insertResult
+      message: '일정이 등록되었습니다.',
+      data: { task_id: insertResult.task_id }
     });
   } catch (err) {
     next(err);
@@ -120,7 +119,6 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
       from: {
         lat: task.from_lat,
         lng: task.from_lng,
-        mode: task.route_mode,
         option: task.route_option
       },
       to: {
@@ -132,10 +130,8 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
 
     res.status(200).json({
       success: true,
-      message: "경로 정보를 계산하였습니다.",
-      data: {
-        path: result.path
-      }
+      message: '경로 정보를 계산하였습니다.',
+      data: { path: result.path }
     });
   } catch (err) {
     next(err);

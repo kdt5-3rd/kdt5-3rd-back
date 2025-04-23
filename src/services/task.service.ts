@@ -2,6 +2,7 @@ import { dbconnect } from '../db/db';
 import { errorResponse } from '../utils/errorResponse';
 import { ERROR_CODES } from '../constants/errorCodes';
 import { formatTravelFields } from '../utils/formatTravelFields';
+import { getTravelInfoDetailed } from '../utils/getTravelInfoDetailed';
 
 export interface TaskData {
   title: string;
@@ -16,7 +17,6 @@ export interface TaskData {
   from_lng?: number;
   from_address?: string;
   from_place_name?: string;
-  route_mode?: string;
   route_option?: string;
 }
 
@@ -72,11 +72,10 @@ export const createTask = async (
     title, memo, start_time, end_time,
     from_lat, from_lng, from_address, from_place_name,
     address, place_name, latitude, longitude,
-    route_mode, route_option
+    route_option
   } = taskData;
 
   const { duration, distance, recommended_departure_time } = travel;
-
   const createdAt = getCurrentKST();
   const updatedAt = createdAt;
 
@@ -85,15 +84,15 @@ export const createTask = async (
       user_id, title, memo, start_time, end_time,
       from_lat, from_lng, from_address, from_place_name,
       address, place_name, latitude, longitude,
-      route_mode, route_option,
+      route_option,
       travel_duration, travel_distance, recommended_departure_time,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       userId, title, memo, start_time, end_time,
       from_lat, from_lng, from_address, from_place_name,
       address, place_name, latitude, longitude,
-      route_mode, route_option,
+      route_option,
       duration, distance, recommended_departure_time,
       createdAt, updatedAt
     ]
@@ -113,28 +112,47 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
     place_name,
     latitude,
     longitude,
-    is_completed,
+    from_lat,
+    from_lng,
+    from_address,
+    from_place_name,
+    route_option,
+    is_completed
   } = data;
 
   const updatedAt = getCurrentKST();
+
+  // travel 정보 재계산 여부 판단
+  const needTravelUpdate =
+    from_lat || from_lng || latitude || longitude || route_option || start_time;
+
+  let travelQuery = '';
+  const params: any[] = [
+    title, memo, start_time, end_time,
+    address, place_name, latitude, longitude,
+    from_lat, from_lng, from_address, from_place_name,
+    route_option
+  ];
+
+  if (needTravelUpdate) {
+    const travel = await getTravelInfoDetailed({
+      from: { lat: from_lat, lng: from_lng, option: route_option },
+      to: { lat: latitude, lng: longitude },
+      startTime: start_time
+    });
+
+    travelQuery = `, travel_duration = ?, travel_distance = ?, recommended_departure_time = ?`;
+    params.push(travel.duration, travel.distance, travel.recommended_departure_time);
+  }
 
   let query = `
     UPDATE tasks 
     SET title = ?, memo = ?, start_time = ?, end_time = ?, 
         address = ?, place_name = ?, latitude = ?, longitude = ?, 
-        updated_at = ?`;
+        from_lat = ?, from_lng = ?, from_address = ?, from_place_name = ?, 
+        route_option = ?, updated_at = ?${travelQuery}`;
 
-  const params: any[] = [
-    title,
-    memo,
-    start_time,
-    end_time,
-    address,
-    place_name,
-    latitude,
-    longitude,
-    updatedAt
-  ];
+  params.push(updatedAt);
 
   if (is_completed !== undefined) {
     query += `, is_completed = ?`;
@@ -224,18 +242,18 @@ export const getTasksByMonth = async (userId: number, query: any) => {
 
 // path 계산용 task id 검색
 export const getTaskById = async (taskId: number) => {
-  const [rows] = await dbconnect.execute(
+  const [rows]: any = await dbconnect.execute(
     `SELECT * FROM tasks WHERE task_id = ?`,
     [taskId]
   );
 
-  if (!rows || (rows as any[]).length === 0) {
+  if (!rows || rows.length === 0) {
     const { status, body } = errorResponse(
       ERROR_CODES.NOT_FOUND,
-      "해당 일정을 찾을 수 없습니다."
+      '해당 일정을 찾을 수 없습니다.'
     );
     throw { ...body, status };
   }
 
-  return (rows as any[])[0];
+  return rows[0];
 };

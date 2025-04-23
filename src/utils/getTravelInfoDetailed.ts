@@ -62,7 +62,6 @@ export const getTravelInfoDetailed = async (params: TravelInput): Promise<Travel
       duration,
       distance,
       recommended_departure_time,
-      path: data.path // ✅ guides 제거
+      path: data.path
     };
-  };
-  
+};

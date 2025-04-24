@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { createTask, deleteTask, getTasksByDay, getTasksByMonth, getTasksByWeek, updateTask } from '../services/task.service';
+import { createTask, deleteTask, getTaskById, getTasksByDay, getTasksByMonth, getTasksByWeek, updateTask } from '../services/task.service';
+import { getTravelInfoDetailed } from '../utils/getTravelInfoDetailed';
 
 export const createTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
-    const data = req.body;
-    const result = await createTask(userId, data);
+    const userId =  1;
+
+    const result = await createTask(userId, req.body);
 
     res.status(201).json({
       success: true,
@@ -88,6 +89,35 @@ export const getTasksByMonthController = async (req: Request, res: Response, nex
       success: true,
       message: (result as any[]).length > 0 ? '월간 일정을 조회하였습니다.' : '해당 날짜의 일정이 없습니다.',
       data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ 경로 계산 컨트롤러
+export const getTaskPathController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const taskId = Number(req.params.id);
+    const task = await getTaskById(taskId);
+
+    const result = await getTravelInfoDetailed({
+      from: {
+        lat: task.from_lat,
+        lng: task.from_lng,
+        option: task.route_option
+      },
+      to: {
+        lat: task.latitude,
+        lng: task.longitude
+      },
+      startTime: task.start_time
+    });
+
+    res.status(200).json({
+      success: true,
+      message: '경로 정보를 계산하였습니다.',
+      data: { path: result.path }
     });
   } catch (err) {
     next(err);

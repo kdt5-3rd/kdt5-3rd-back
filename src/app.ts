@@ -15,18 +15,32 @@ import { notFoundHandler } from './middlewares/notFoundHandler';
 const RATE_LIMIT_WINDOW_MS = 1 * 60 * 1000; // 1분
 const RATE_LIMIT_MAX_CALLS = 30;
 
+// Express 모듈 호출 (절대 손대지 말 것!)
 const app = express();
 
-// CORS 설정, 로컬 개발 클라이언트에서 오는 요청을 허용
+// CORS 설정, 로컬 개발 클라이언트(개발 도중에만 유효) 및 프론트 배포 URL (예정) 에서 오는 요청을 허용
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://ttolgaebi.com',
+];
+
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+    origin: (origin, callback) => {
+        // origin이 undefined가 아닌 경우만 .includes() 실행되도록.
+        if (origin && allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS 차단됨: ' + origin));
+        }
+    },
+    credentials: true,
 }));
 
 // 배포 환경에서 API 요청 제한 기능 사용을 위한 설정
 // 실제 IP 주소는 Proxy 서버보다 1단계 뒤에 있음을 SET
 app.set('trust proxy', 1);
 
+// JSON 모듈 사용 설정 (절대 손대지 말 것!)
 app.use(express.json());
 
 // API 요청 제한 기능 설정 및 모듈 호출
@@ -54,10 +68,10 @@ app.use('/api/search', searchRouter);
 //회원가입 API Router
 app.use('/api/join', joinRouter);
 
-// 404 대응 핸들러 (이 코드는 Router 연결 코드보다 뒤에 위치해 있어야 함.)
+// 404 대응 핸들러 (이 코드는 Router 연결 코드보다 뒤에 위치해 있어야 함.) (절대 손대지 말 것!)
 app.use(notFoundHandler);
 
-// 공통 에러 핸들러 사용 설정 (이 코드는 다른 서버코드 보다 가장 뒤에 위치해 있어야 함)
+// 공통 에러 핸들러 사용 설정 (이 코드는 다른 서버코드 보다 가장 뒤에 위치해 있어야 함) (절대 손대지 말 것!)
 app.use(errorHandler);
 
 export default app;

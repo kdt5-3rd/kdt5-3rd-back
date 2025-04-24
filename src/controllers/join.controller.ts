@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { joinUserService } from "../services/join.service";
-import { dbconnect } from "../db/db";
+
 
 export const joinController = async (
   req: Request,
@@ -32,19 +32,3 @@ export const joinController = async (
   }
 };
 
-//회원 정보 조회
-export const joinCheck =async (req: Request, res: Response, next: NextFunction) => {
-  try {
-
-    const query = "SELECT username, email FROM users"; // 비밀번호는 제외하고 조회
-    const [rows]: any = await dbconnect.execute(query);
-
-    res.status(200).json({
-      success: true,
-      data: rows,
-    });
-  } catch (err) {
-    console.error("회원 정보 조회 중 오류 발생:", err);
-    next(err);
-  }
-};

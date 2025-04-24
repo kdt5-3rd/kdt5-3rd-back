@@ -16,15 +16,30 @@ export const joinUserService = async (username: string, email: string, password:
   try {
     // 이메일 중복 확인
     const checkEmailQuery = 'SELECT email FROM users WHERE email = ?';
-    const [rows]: any = await dbconnect.execute(checkEmailQuery, [email]);
+    const [rowsEmail]: any = await dbconnect.execute(checkEmailQuery, [email]);
 
-    if (rows.length > 0) {
+    if (rowsEmail.length > 0) {
       // 이미 존재하는 이메일
       const { status, body } = errorResponse(
         ERROR_CODES.CONFLICT,
         "존재하는 이메일입니다."
       );
+
       throw { ...body, status };
+    }
+
+      //username 중복 확인
+      const checkUsernameQuery = 'SELECT username FROM users WHERE username = ?';
+      const [rowsUsername]: any = await dbconnect.execute(checkUsernameQuery, [username]);
+
+      if (rowsUsername.length > 0) {
+        // 이미 존재하는 username
+        const { status, body } = errorResponse(
+          ERROR_CODES.CONFLICT,
+          "존재하는 이름입니다."
+        );
+
+        throw { ...body, status };
     }
 
     // 비밀번호 해싱

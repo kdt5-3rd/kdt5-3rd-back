@@ -9,6 +9,8 @@ import searchRouter from './routes/search.route';
 import joinRouter from './routes/join.route';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFoundHandler } from './middlewares/notFoundHandler';
+import morgan from 'morgan';
+import logger from './utils/logger';
 
 // API 요청 제한 수치 설정용 상수
 // 요청 제한 기준 시간, 요청 제한 횟수 설정
@@ -39,6 +41,14 @@ app.use(cors({
 // 배포 환경에서 API 요청 제한 기능 사용을 위한 설정
 // 실제 IP 주소는 Proxy 서버보다 1단계 뒤에 있음을 SET
 app.set('trust proxy', 1);
+
+// 에러 로깅 기능
+// morgan 로그를 winston으로 전달
+app.use(morgan('combined', {
+    stream: {
+      write: (message) => logger.info(message.trim()),
+    }
+}));
 
 // JSON 모듈 사용 설정 (절대 손대지 말 것!)
 app.use(express.json());

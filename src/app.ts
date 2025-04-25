@@ -7,6 +7,7 @@ import pingRouter from './routes/ping.route';
 import taskRouter from './routes/task.route';
 import searchRouter from './routes/search.route';
 import joinRouter from './routes/join.route';
+import newsRouter from './routes/news.route';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFoundHandler } from './middlewares/notFoundHandler';
 
@@ -67,6 +68,9 @@ app.use('/api/search', searchRouter);
 
 // 회원가입 API Router
 app.use('/api/join', joinRouter);
+
+//뉴스 api 라우터
+app.use('/api/external/news', newsRouter);
 
 // 404 대응 핸들러 (이 코드는 Router 연결 코드보다 뒤에 위치해 있어야 함.) (절대 손대지 말 것!)
 app.use(notFoundHandler);

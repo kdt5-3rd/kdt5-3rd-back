@@ -2,6 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { errorResponse } from '../../utils/errorResponse';
 import { ERROR_CODES } from '../../constants/errorCodes';
 
+// 좌표값 "" 검증
+const normalizeCoord = (value: any): number | undefined => {
+  if (typeof value === 'string' && value.trim() === '') return undefined;
+  const num = Number(value);
+  return isNaN(num) ? undefined : num;
+};
+
 /**
  * 📌 일정 등록/수정 시 Body 값에 대해 유효성 검사를 수행하는 미들웨어
  * 
@@ -92,54 +99,25 @@ export const validateTaskBody = (req: Request, res: Response, next: NextFunction
     res.status(status).json(body);
   }
 
-  // 위치 좌표가 존재하는 경우, 숫자인지 검사 + 위도/경도 범위 검사
-  const coords = [from_lat, from_lng, latitude, longitude];
-  for (const coord of coords) {
-    if (coord !== undefined && typeof coord !== 'number') {
-      const { status, body } = errorResponse(
-        ERROR_CODES.INVALID_PARAM,
-        '위치 좌표는 숫자여야 합니다.',
-        { fields: ['from_lat', 'from_lng', 'latitude', 'longitude'] }
-      );
-      res.status(status).json(body);
-    }
-  }
-
   // ✅ 위도-경도 범위 유효성 검증
-  if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '위도는 -90 이상 90 이하의 숫자여야 합니다.',
-      { fields: ['latitude'] }
-    );
-    res.status(status).json(body);
-  }
+  const coords = {
+    latitude: normalizeCoord(latitude),
+    longitude: normalizeCoord(longitude),
+    from_lat: normalizeCoord(from_lat),
+    from_lng: normalizeCoord(from_lng),
+  };
 
-  if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '경도는 -180 이상 180 이하의 숫자여야 합니다.',
-      { fields: ['longitude'] }
-    );
-    res.status(status).json(body);
+  if (coords.latitude !== undefined && (coords.latitude < -90 || coords.latitude > 90)) {
+    res.status(400).json(errorResponse(ERROR_CODES.INVALID_PARAM, '위도는 -90 이상 90 이하의 숫자여야 합니다.', { fields: ['latitude'] }).body);
   }
-
-  if (from_lat !== undefined && (from_lat < -90 || from_lat > 90)) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '출발지 위도는 -90 이상 90 이하의 숫자여야 합니다.',
-      { fields: ['from_lat'] }
-    );
-    res.status(status).json(body);
+  if (coords.longitude !== undefined && (coords.longitude < -180 || coords.longitude > 180)) {
+    res.status(400).json(errorResponse(ERROR_CODES.INVALID_PARAM, '경도는 -180 이상 180 이하의 숫자여야 합니다.', { fields: ['longitude'] }).body);
   }
-
-  if (from_lng !== undefined && (from_lng < -180 || from_lng > 180)) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '출발지 경도는 -180 이상 180 이하의 숫자여야 합니다.',
-      { fields: ['from_lng'] }
-    );
-    res.status(status).json(body);
+  if (coords.from_lat !== undefined && (coords.from_lat < -90 || coords.from_lat > 90)) {
+    res.status(400).json(errorResponse(ERROR_CODES.INVALID_PARAM, '출발지 위도는 -90 이상 90 이하의 숫자여야 합니다.', { fields: ['from_lat'] }).body);
+  }
+  if (coords.from_lng !== undefined && (coords.from_lng < -180 || coords.from_lng > 180)) {
+    res.status(400).json(errorResponse(ERROR_CODES.INVALID_PARAM, '출발지 경도는 -180 이상 180 이하의 숫자여야 합니다.', { fields: ['from_lng'] }).body);
   }
 
   // 모든 검사를 통과한 경우 다음 단계로 이동

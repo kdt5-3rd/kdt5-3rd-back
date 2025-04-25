@@ -117,7 +117,7 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
     res.status(200).json({
       success: true,
       message: '경로 정보를 계산하였습니다.',
-      data: { path: result.path }
+      data: result
     });
   } catch (err) {
     next(err);

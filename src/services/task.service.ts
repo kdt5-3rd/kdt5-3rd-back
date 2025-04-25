@@ -24,8 +24,6 @@ export interface TaskData {
   route_option?: string;
 }
 
-<<<<<<< HEAD
-=======
 export interface TravelData {
   duration: number;
   distance: number;
@@ -33,25 +31,19 @@ export interface TravelData {
 }
 
 //
-// * 공통 유틸 함수
+// * 유틸 함수
 //
 
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 // 숫자 파서
 export const parseDecimalFields = (row: any) => {
   return {
     ...row,
     latitude: row.latitude !== null ? parseFloat(row.latitude) : null,
     longitude: row.longitude !== null ? parseFloat(row.longitude) : null,
-<<<<<<< HEAD
-  };
-}
-=======
     from_lat: row.from_lat !== null ? parseFloat(row.from_lat) : null,
     from_lng: row.from_lng !== null ? parseFloat(row.from_lng) : null
   };
 };
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 
 // boolean 값 검사기
 export const parseToBoolean = (value: any): boolean => {
@@ -71,8 +63,6 @@ export const parseToBoolean = (value: any): boolean => {
   return Boolean(Number(value));
 }
 
-<<<<<<< HEAD
-=======
 // ✅ KST 기준 현재 시간 반환
 const getCurrentKST = (): string => {
   const now = new Date();
@@ -134,7 +124,6 @@ const computeTravelInfo = async (
 // * 실제 함수들
 //
 
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 // 📌 일정 등록
 export const createTask = async (userId: number, data: TaskData) => {
   const {
@@ -151,27 +140,6 @@ export const createTask = async (userId: number, data: TaskData) => {
   );
 
   const [result] = await dbconnect.execute(
-<<<<<<< HEAD
-    `INSERT INTO tasks (user_id, title, memo, start_time, end_time, address, place_name, latitude, longitude, is_completed)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      userId,
-      data.title,
-      data.memo,
-      data.start_time,
-      data.end_time,
-      data.address,
-      data.place_name,
-      data.latitude,
-      data.longitude,
-      false,
-    ]
-  );
-
-  return {
-    task_id: (result as any).insertId,
-  };
-=======
     `INSERT INTO tasks (
       user_id, title, memo, start_time, end_time, address, place_name,
       latitude, longitude, from_lat, from_lng, from_address, from_place_name, route_option,
@@ -189,50 +157,10 @@ export const createTask = async (userId: number, data: TaskData) => {
   );
 
   return { taskId: (result as any).insertId };
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 };
 
 // 📌 일정 수정
 export const updateTask = async (userId: number, taskId: number, data: any) => {
-<<<<<<< HEAD
-  if (!data.title || !data.start_time) {
-    const { status, body } = errorResponse(
-      ERROR_CODES.INVALID_PARAM,
-      '일정 제목과 시작 시간은 필수입니다.',
-      { fields: ['title', 'start_time'] }
-    );
-    throw { ...body, status };
-  }
-
-  // 필드 추출 (task_id, created_at, updated_at은 무시)
-  const {
-    title,
-    memo,
-    start_time,
-    end_time,
-    address,
-    place_name,
-    latitude,
-    longitude,
-    is_completed,
-  } = data;
-
-  let query = `
-    UPDATE tasks 
-    SET title = ?, memo = ?, start_time = ?, end_time = ?, 
-        address = ?, place_name = ?, latitude = ?, longitude = ?`;
-
-  const params: any[] = [
-    title,
-    memo,
-    start_time,
-    end_time,
-    address,
-    place_name,
-    latitude,
-    longitude,
-  ];
-=======
   const {
     title, memo, start_time, end_time, address, place_name,
     latitude, longitude, from_lat, from_lng,
@@ -264,7 +192,6 @@ export const updateTask = async (userId: number, taskId: number, data: any) => {
         address = ?, place_name = ?, latitude = ?, longitude = ?, 
         from_lat = ?, from_lng = ?, from_address = ?, from_place_name = ?, 
         route_option = ?, updated_at = ?${travelQuery}`;
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 
   if (is_completed !== undefined) {
     query += `, is_completed = ?`;
@@ -315,15 +242,11 @@ export const getTasksByDay = async (userId: number, query: any) => {
     [userId, start, end]
   );
 
-<<<<<<< HEAD
-  return (rows as any[]).map(parseDecimalFields);
-=======
   const formatted = (rows as any[]).map((row) =>
     formatTravelFields(parseDecimalFields(row)) // decimal 처리도 함께
   );
 
   return formatted;
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 };
 
 // 📆 주간 일정 조회
@@ -355,8 +278,6 @@ export const getTasksByMonth = async (userId: number, query: any) => {
   );
 
   return (rows as any[]).map(parseDecimalFields);
-<<<<<<< HEAD
-=======
 };
 
 // path 계산용 task id 검색
@@ -375,5 +296,4 @@ export const getTaskById = async (taskId: number) => {
   }
 
   return rows[0];
->>>>>>> 81c4f7a55563d0bff88f4c07f14e6782aec0b206
 };

@@ -71,7 +71,13 @@ const getCurrentKST = (): string => {
 };
 
 // 공통 유효 좌표 검사 함수
-const isValidCoord = (value: any) => typeof value === 'number' && value !== 0;
+const isValidCoord = (value: any): value is number => {
+  if (typeof value === 'string') {
+    return !isNaN(+value) && +value !== 0;
+  };
+  
+  return typeof value === 'number' && value !== 0;
+};
 
 // travel route_option 제한
 const VALID_ROUTE_OPTIONS = [

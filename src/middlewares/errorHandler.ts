@@ -8,15 +8,26 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   const userId = (req.user as { id?: number })?.id || 'anonymous';
+  const status = err.status || 500;
 
-  // 로그 파일 및 콘솔에 기록 (stack, 요청 정보 포함)
-  logger.error(`[${req.method}] ${req.originalUrl} - ${err.message}`, {
+  const logMeta = {
     userId,
     body: req.body,
     query: req.query,
     params: req.params,
     stack: err.stack,
-  });
+    status,
+    code: err.code || 'ERR_INTERNAL_SERVER',
+  };
+
+  const message = `[${req.method}] ${req.originalUrl} - ${err.message}`;
+
+  // ✅ 상태 코드에 따라 warn 또는 error로 분기
+  if (status >= 400 && status < 500) {
+    logger.warn(message, logMeta);
+  } else {
+    logger.error(message, logMeta);
+  }
 
   if (err.status && err.code) {
     res.status(err.status).json({

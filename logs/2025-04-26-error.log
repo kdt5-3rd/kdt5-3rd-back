@@ -1,0 +1,11 @@
+2025-04-26 11:13:11 [ERROR] TypeError: Cannot destructure property 'title' of 'req.body' as it is undefined.
+    at validateTaskBody (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\src\middlewares\validate\validateTaskBody.ts:17:5)
+    at Layer.handleRequest (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\lib\layer.js:152:17)
+    at next (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\lib\route.js:117:3)
+    at handle (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\lib\layer.js:152:17)
+    at D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\index.js:295:15
+    at processParams (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\index.js:582:12)
+    at next (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\index.js:291:5)
+    at Function.handle (D:\00. Coding Archive\06. 프로그래머스 데브코스\final_prj\node_modules\router\index.js:186:3)

@@ -1,7 +1,7 @@
-
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import Sentry from '@sentry/node';
 import userRouter from './routes/user.route';
 import pingRouter from './routes/ping.route';
 import taskRouter from './routes/task.route';
@@ -17,7 +17,7 @@ import logger from './utils/logger';
 const RATE_LIMIT_WINDOW_MS = 1 * 60 * 1000; // 1분
 const RATE_LIMIT_MAX_CALLS = 30;
 
-// Express 모듈 호출 (절대 손대지 말 것!)
+// Express 모듈 호출 (최상단, 위치 절대 손대지 말 것!)
 const app = express();
 
 // CORS 설정, 로컬 개발 클라이언트(개발 도중에만 유효) 및 프론트 배포 URL (예정) 에서 오는 요청을 허용
@@ -77,6 +77,9 @@ app.use('/api/search', searchRouter);
 
 // 회원가입 API Router
 app.use('/api/join', joinRouter);
+
+// Sentry 에러 핸들러 등록 (라우터 뒤에, 에러 핸들러 앞에 위치해야 함)
+Sentry.setupExpressErrorHandler(app);
 
 // 404 대응 핸들러 (이 코드는 Router 연결 코드보다 뒤에 위치해 있어야 함.) (절대 손대지 말 것!)
 app.use(notFoundHandler);

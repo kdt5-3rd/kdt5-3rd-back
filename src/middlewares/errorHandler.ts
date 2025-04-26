@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
+import { maskSensitiveData } from '../utils/maskSensitiveData';
 
 export const errorHandler = (
   err: any,
@@ -6,7 +8,28 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  console.error(err); // 서버 로깅
+  const userId = (req.user as { id?: number })?.id || 'anonymous';
+  const status = err.status || 500;
+
+  const logMeta = {
+    userId,
+    ip: req.ip,
+    body: maskSensitiveData(req.body),
+    query: maskSensitiveData(req.query),
+    params: maskSensitiveData(req.params),
+    stack: err.stack,
+    status,
+    code: err.code || 'ERR_INTERNAL_SERVER',
+  };
+
+  const message = `[${req.method}] ${req.originalUrl} - ${err.message}`;
+
+  // ✅ 상태 코드에 따라 warn 또는 error로 분기
+  if (status >= 400 && status < 500) {
+    logger.warn(message, logMeta);
+  } else {
+    logger.error(message, logMeta);
+  }
 
   if (err.status && err.code) {
     res.status(err.status).json({

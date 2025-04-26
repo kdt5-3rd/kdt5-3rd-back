@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\00. Coding Archive\\06. 프로그래머스 데브코스\\final_prj\\logs\\.04fa9fbb344ce0d31e47e6ce6754d70ffbe75c49-audit.json",
+    "files": [
+        {
+            "date": 1745633578054,
+            "name": "D:\\00. Coding Archive\\06. 프로그래머스 데브코스\\final_prj\\logs\\2025-04-26-combined.log",
+            "hash": "ff19380613e160417593a0150247a19bfb5af1ed52c11000496348388ab69f3b"
+        }
+    ],
+    "hashType": "sha256"
+}

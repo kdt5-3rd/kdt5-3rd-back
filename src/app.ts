@@ -28,12 +28,14 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: (origin, callback) => {
-        // origin이 undefined가 아닌 경우만 .includes() 실행되도록.
-        if (origin && allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS 차단됨: ' + origin));
-        }
+      if (!origin) {
+        return callback(null, false); // CORS 정책 위반 시 그냥 요청 거부
+      }
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false); // 에러 던지지 말고 '거부'만
+      }
     },
     credentials: true,
 }));
@@ -115,9 +117,11 @@ app.use(limiter);
 // 민감 경로 보호 미들웨어
 app.use((req, res, next) => {
     const forbiddenPaths = ['/.env', '/.git', '/config.json', '/phpmyadmin'];
-    if (forbiddenPaths.includes(req.path)) {
-        logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);
-        res.status(403).send('Forbidden');
+    const requestPath = req.path.toLowerCase();
+    if (forbiddenPaths.some(forbidden => requestPath.startsWith(forbidden))) {
+      logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);
+      res.status(403).send('Forbidden');
+      return;
     }
     next();
 });

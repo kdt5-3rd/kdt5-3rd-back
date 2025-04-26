@@ -7,14 +7,15 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  const userId = (req.user as { id?: number })?.id || 'anonymous';
+
   // 로그 파일 및 콘솔에 기록 (stack, 요청 정보 포함)
   logger.error(`[${req.method}] ${req.originalUrl} - ${err.message}`, {
-    status: err.status || 500,
-    code: err.code || 'ERR_INTERNAL_SERVER',
-    stack: err.stack || 'No stack',
+    userId,
     body: req.body,
-    params: req.params,
     query: req.query,
+    params: req.params,
+    stack: err.stack,
   });
 
   if (err.status && err.code) {

@@ -33,9 +33,25 @@ const logger = createLogger({
   level: 'info',
   format: format.combine(
     format.errors({ stack: true }),
-    format.printf(({ level, message, stack }) => {
+    format.printf((info) => {
       const timestamp = getKSTTimestamp();
-      return `${timestamp} [${level.toUpperCase()}] ${stack || message}`;
+      
+      // stack이 있으면 stack 출력, 아니면 message
+      let log = `${timestamp} [${info.level.toUpperCase()}] ${info.stack || info.message}`;
+    
+      // 추가적인 메타데이터 (userId, params, query, body 등)가 있으면 JSON 형태로 출력
+      const { userId, params, query, body, status, code, ...rest } = info;
+      
+      const additional = { userId, params, query, body, status, code, ...rest };
+      const cleanAdditional = Object.fromEntries(
+        Object.entries(additional).filter(([_, v]) => v !== undefined)
+      );
+    
+      if (Object.keys(cleanAdditional).length > 0) {
+        log += ` ${JSON.stringify(cleanAdditional)}`;
+      }
+    
+      return log;
     })
   ),
   transports: [

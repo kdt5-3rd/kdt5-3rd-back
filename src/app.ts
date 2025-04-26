@@ -116,7 +116,12 @@ app.use(limiter);
 
 // 민감 경로 보호 미들웨어
 app.use((req, res, next) => {
-    const forbiddenPaths = ['/.env', '/.git', '/config.json', '/phpmyadmin'];
+    const forbiddenPaths = [
+      '/.env', '/.git', '/config.json', '/phpmyadmin',
+      '/phpunit', '/vendor', '/lib', '/laravel', '/public', '/admin',
+      '/cms', '/crm', '/workspace', '/tests', '/test', '/demo',
+      '/panel', '/apps', '/app', '/tmp', '/storage', '/backup', '/logs', '/web', '/system'
+    ];
     const requestPath = req.path.toLowerCase();
     if (forbiddenPaths.some(forbidden => requestPath.startsWith(forbidden))) {
       logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);

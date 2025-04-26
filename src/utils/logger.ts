@@ -8,7 +8,7 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const getKSTTimestamp = () => dayjs().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
+const getUTCTimestamp = () => dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
 const logDir = path.join(__dirname, '../../logs');
 
 // 로그 파일별 Transport 설정
@@ -42,7 +42,7 @@ const successRotateTransport = new DailyRotateFile({
 const baseLogger = createLogger({
   level: 'info',
   format: format.combine(
-    format.timestamp({ format: () => getKSTTimestamp() }),
+    format.timestamp({ format: () => getUTCTimestamp() }),
     format.errors({ stack: true }),
     format.json(),
   ),

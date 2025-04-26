@@ -24,12 +24,7 @@ export const errorHandler = (
 
   const message = `[${req.method}] ${req.originalUrl} - ${err.message}`;
 
-  // ✅ 상태 코드에 따라 warn 또는 error로 분기
-  if (status >= 400 && status < 500) {
-    logger.warn(message, logMeta);
-  } else {
-    logger.error(message, logMeta);
-  }
+  logger.error(message, logMeta);
 
   if (err.status && err.code) {
     res.status(err.status).json({

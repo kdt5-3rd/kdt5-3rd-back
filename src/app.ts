@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import Sentry from '@sentry/node';
@@ -43,11 +43,60 @@ app.use(cors({
 app.set('trust proxy', 1);
 
 // 에러 로깅 기능
-// morgan 로그를 winston으로 전달
-app.use(morgan('combined', {
+// 응답 시간 계산 미들웨어
+app.use((req, res, next) => {
+    const start = process.hrtime();
+  
+    const originalWriteHead = res.writeHead.bind(res);
+    res.writeHead = function (statusCode: number, reasonPhrase?: string | any, headers?: any): Response {
+      const elapsed = process.hrtime(start);
+      const ms = elapsed[0] * 1000 + elapsed[1] / 1e6;
+      res.setHeader('X-Response-Time', ms.toFixed(3));
+  
+      // 타입 명확히 지정하고 호출
+      if (typeof reasonPhrase === 'string') {
+        return originalWriteHead(statusCode, reasonPhrase, headers);
+      } else {
+        return originalWriteHead(statusCode, reasonPhrase);
+      }
+    } as any; // (타입 오류 없애기 위해 최종적으로 any로 강제 변환)
+  
+    next();
+});
+
+// morgan 커스텀 토큰: JSON 포맷으로 요청 정보 + 응답 시간 기록
+morgan.token('json', (req, res) => {
+    const request = req as Request;
+    const response = res as Response;
+  
+    return JSON.stringify({
+      method: request.method,
+      url: request.originalUrl,
+      status: response.statusCode,
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+      responseTime: res.getHeader('X-Response-Time') || null,
+      timestamp: new Date().toISOString(),
+    });
+});
+  
+// morgan으로 모든 요청 로깅
+app.use(morgan(':json', {
     stream: {
-      write: (message) => logger.info(message.trim()),
-    }
+      write: (message: string) => {
+        const log = JSON.parse(message);
+  
+        // 항상 combined 기록
+        logger.info(log.message || `${log.method} ${log.url}`, log, { onlyCombined: true });
+  
+        // 에러 또는 성공 정확히 분기
+        if (log.status >= 400) {
+          logger.error(log.message || `${log.method} ${log.url}`, log); // 4xx, 5xx
+        } else if (log.status >= 100 && log.status < 400) {
+          logger.success(log.message || `${log.method} ${log.url}`, log); // 1xx, 2xx, 3xx
+        }
+      },
+    },
 }));
 
 // JSON 모듈 사용 설정 (절대 손대지 말 것!)
@@ -67,11 +116,11 @@ app.use(limiter);
 app.use((req, res, next) => {
     const forbiddenPaths = ['/.env', '/.git', '/config.json', '/phpmyadmin'];
     if (forbiddenPaths.includes(req.path)) {
-      logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);
-    res.status(403).send('Forbidden');
+        logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);
+        res.status(403).send('Forbidden');
     }
     next();
-  });
+});
   
 // favicon.ico 요청 무시 (불필요한 에러 방지)
 app.get('/favicon.ico', (req, res): void => {

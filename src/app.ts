@@ -63,6 +63,21 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// 민감 경로 보호 미들웨어
+app.use((req, res, next) => {
+    const forbiddenPaths = ['/.env', '/.git', '/config.json', '/phpmyadmin'];
+    if (forbiddenPaths.includes(req.path)) {
+      logger.warn(`[보안경고] 민감 경로 접근 시도: ${req.path}`);
+    res.status(403).send('Forbidden');
+    }
+    next();
+  });
+  
+// favicon.ico 요청 무시 (불필요한 에러 방지)
+app.get('/favicon.ico', (req, res): void => {
+    res.status(204).end();
+});
+
 // 테스트 API Router
 app.use('/api/ping', pingRouter);
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
+import { maskSensitiveData } from '../utils/maskSensitiveData';
 
 export const errorHandler = (
   err: any,
@@ -12,9 +13,10 @@ export const errorHandler = (
 
   const logMeta = {
     userId,
-    body: req.body,
-    query: req.query,
-    params: req.params,
+    ip: req.ip,
+    body: maskSensitiveData(req.body),
+    query: maskSensitiveData(req.query),
+    params: maskSensitiveData(req.params),
     stack: err.stack,
     status,
     code: err.code || 'ERR_INTERNAL_SERVER',

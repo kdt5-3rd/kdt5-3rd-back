@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "D:\\00. Coding Archive\\06. 프로그래머스 데브코스\\final_prj\\logs\\.94ff51b87e29e670e693a973a58a23b90bbd75bf-audit.json",
+    "files": [
+        {
+            "date": 1745633578058,
+            "name": "D:\\00. Coding Archive\\06. 프로그래머스 데브코스\\final_prj\\logs\\2025-04-26-error.log",
+            "hash": "069aa0076e6acb6fd23f4529314e2a12f34dd4acd5d2b724db5c9ed953e267ac"
+        },
+        {
+            "date": 1745717406665,
+            "name": "D:\\00. Coding Archive\\06. 프로그래머스 데브코스\\final_prj\\logs\\2025-04-27-error.log",
+            "hash": "6a568239f0f238afb8267e017b6ea11b54333a7a9c11139e143a23d0f89f09a8"
+        }
+    ],
+    "hashType": "sha256"
+}

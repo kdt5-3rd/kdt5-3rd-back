@@ -123,15 +123,15 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
 
     const result = await getTravelInfoDetailed({
       from: {
-        lat: task.from_lat,
-        lng: task.from_lng,
+        lat: task.from_lat ?? 0,
+        lng: task.from_lng ?? 0,
       },
       to: {
-        lat: task.latitude,
-        lng: task.longitude,
+        lat: task.latitude ?? 0,
+        lng: task.longitude ?? 0,
       },
-      option: task.route_option,
-      startTime: task.start_time,
+      option: task.route_option ?? undefined,
+      startTime: task.start_time.toISOString(),
     });
 
     res.status(200).json({

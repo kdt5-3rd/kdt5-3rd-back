@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+ 
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  task_id                    Int      @id @default(autoincrement())
+  user_id                    Int
+  title                      String
+  memo                       String?
+  start_time                 DateTime
+  end_time                   DateTime?
+  address                    String?
+  place_name                 String?
+  latitude                   Float?
+  longitude                   Float?
+  from_lat                   Float?
+  from_lng                   Float?
+  from_address               String?
+  from_place_name            String?
+  route_option               String?
+  travel_duration            Int?
+  travel_distance            Int?
+  recommended_departure_time DateTime?
+  is_completed               Boolean   @default(false)
+  created_at                 DateTime  @default(now())
+  updated_at                 DateTime  @updatedAt
+
+  @@map("tasks")
+}

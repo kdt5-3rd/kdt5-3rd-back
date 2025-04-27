@@ -8,22 +8,24 @@ import {
   getTasksByMonthController,
   getTaskPathController,
 } from '../controllers/task.controller';
-import { validateDateQuery } from '../middlewares/validate/validateDayQuery';
-import { validateTaskBody } from '../middlewares/validate/validateTaskBody';
+
+import { TaskBodySchema, DayQuerySchema, WeekQuerySchema, MonthQuerySchema } from '../types/task';
+import { validateBody } from '../middlewares/validate/validateBody';
+import { validateQuery } from '../middlewares/validate/validateQuery';
 
 const router = express.Router();
 
-// 일정 등록, 수정, 삭제
-router.post('/', validateTaskBody, createTaskController);
-router.patch('/:id', validateTaskBody, updateTaskController);
+// ✅ 일정 등록, 수정, 삭제
+router.post('/', validateBody(TaskBodySchema), createTaskController);
+router.patch('/:id', validateBody(TaskBodySchema), updateTaskController);
 router.delete('/:id', deleteTaskController);
 
-// 📌 일정 경로 계산
+// ✅ 일정 경로 계산
 router.get('/:id/path', getTaskPathController);
 
-// 일정 조회 (일간, 주간, 월간)
-router.get('/day', validateDateQuery('day'), getTasksByDayController);
-router.get('/week', validateDateQuery('week'), getTasksByWeekController);
-router.get('/month', validateDateQuery('month'), getTasksByMonthController);
+// ✅ 일정 조회 (일간, 주간, 월간)
+router.get('/day', validateQuery(DayQuerySchema), getTasksByDayController);
+router.get('/week', validateQuery(WeekQuerySchema), getTasksByWeekController);
+router.get('/month', validateQuery(MonthQuerySchema), getTasksByMonthController);
 
 export default router;

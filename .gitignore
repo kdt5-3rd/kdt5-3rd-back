@@ -20,3 +20,7 @@ pnpm-debug.log*
 # 기타
 .DS_Store
 *.pem
+
+# 로그 폴더 (폴더만 유지하고 내부 파일은 무시)
+logs/*
+!logs/.gitkeep

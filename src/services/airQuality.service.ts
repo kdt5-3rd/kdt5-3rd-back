@@ -2,13 +2,13 @@ import axios from "axios";
 import { errorResponse } from "../utils/errorResponse";
 import { ERROR_CODES } from "../constants/errorCodes";
 
-interface AirQualityCurrent {
+export interface AirQualityCurrent {
   time: string;
   pm10: number;
   pm2_5: number;
 }
 
-interface AirQualityResponse {
+export interface AirQualityResponse {
   current: AirQualityCurrent;
 }
 
@@ -55,9 +55,7 @@ export const airQualityService = async (
     };
     return { current };
   } catch (err: any) {
-    if (err.status && err.code) {
-      throw err;
-    }
+    if (err.status && err.code) throw err;
     const { status, body } = errorResponse(
       ERROR_CODES.INTERNAL,
       "대기질 데이터를 가져오는 중 오류가 발생했습니다.",

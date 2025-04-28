@@ -25,10 +25,19 @@ export interface WeatherHourly {
   weathercode: number;
 }
 
+export interface WeatherDaily {
+  date: string;
+  weathercode: number;
+  tempMax: number;
+  tempMin: number;
+  precipitationProbability: number;
+}
+
 export interface WeatherResponse {
   location: WeatherLocation;
   current: WeatherCurrent;
   hourly: WeatherHourly[];
+  daily: WeatherDaily[];
 }
 
 function formatLocalHour(date: Date): string {
@@ -45,8 +54,7 @@ export const weatherService = async (
 ): Promise<WeatherResponse> => {
   try {
     const now = new Date();
-    now.setMinutes(0, 0, 0);
-    const currentHour = formatLocalHour(now);
+    const localHour = formatLocalHour(now);
 
     const url = "https://api.open-meteo.com/v1/forecast";
     const params = {
@@ -55,7 +63,10 @@ export const weatherService = async (
       current_weather: true,
       hourly:
         "temperature_2m,precipitation,weathercode,relativehumidity_2m,pressure_msl,uv_index",
+      daily:
+        "weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
       timezone: "Asia/Seoul",
+      forecast_days: 7,
     };
 
     const { data } = await axios.get(url, {
@@ -63,15 +74,9 @@ export const weatherService = async (
       timeout: 5000,
     });
 
-    const {
-      latitude: lat,
-      longitude: lon,
-      timezone,
-      current_weather,
-      hourly,
-    } = data;
+    const { current_weather, hourly, daily, timezone } = data;
 
-    const startIdx = hourly.time.findIndex((t: string) => t === currentHour);
+    const startIdx = hourly.time.findIndex((t: string) => t === localHour);
     if (startIdx === -1) {
       const { status, body } = errorResponse(
         ERROR_CODES.NOT_FOUND,
@@ -99,8 +104,23 @@ export const weatherService = async (
       uv_index: hourly.uv_index[startIdx],
     };
 
+    const dailyData: WeatherDaily[] = daily.time.map(
+      (date: string, idx: number) => ({
+        date,
+        weathercode: daily.weathercode[idx],
+        tempMax: daily.temperature_2m_max[idx],
+        tempMin: daily.temperature_2m_min[idx],
+        precipitationProbability: daily.precipitation_probability_max[idx],
+      })
+    );
+
     const location: WeatherLocation = { latitude, longitude, timezone };
-    return { location, current, hourly: hourlyData };
+    return {
+      location,
+      current,
+      hourly: hourlyData,
+      daily: dailyData,
+    };
   } catch (err: any) {
     if (err.status && err.code) {
       throw err;

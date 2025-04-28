@@ -6,7 +6,7 @@ export const weatherController = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const latParam = req.query.lat as string;
     const lonParam = req.query.lon as string;
@@ -14,8 +14,8 @@ export const weatherController = async (
     const lon = parseFloat(lonParam);
 
     if (
-      isNaN(lat) ||
-      isNaN(lon) ||
+      Number.isNaN(lat) ||
+      Number.isNaN(lon) ||
       lat < -90 ||
       lat > 90 ||
       lon < -180 ||
@@ -23,7 +23,7 @@ export const weatherController = async (
     ) {
       res.status(400).json({
         success: false,
-        message: "정확한 위도와 경도를 모두 입력해주세요.",
+        message: "정확한 위도(lat)와 경도(lon)를 모두 입력해주세요.",
       });
       return;
     }
@@ -42,6 +42,7 @@ export const weatherController = async (
       location: weatherData.location,
       current: currentWithAirQuality,
       hourly: weatherData.hourly,
+      daily: weatherData.daily,
     });
   } catch (error) {
     next(error);

@@ -11,6 +11,7 @@ jobs:
     env:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout Repository

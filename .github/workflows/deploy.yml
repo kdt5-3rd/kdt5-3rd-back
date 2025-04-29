@@ -38,7 +38,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/kdt5-3rd-back
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             npm install
             npx tsc
             pm2 restart tgb

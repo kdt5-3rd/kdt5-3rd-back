@@ -9,7 +9,7 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
     env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }} # 테스트를 위한 필요 환경변수들
       REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
 

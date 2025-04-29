@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Test and Deploy to EC2
 
 on:
   push:
@@ -6,14 +6,25 @@ on:
       - main  # main 브랜치에 push되면 실행
 
 jobs:
-  deploy:
+  test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Connect & Deploy to EC2
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Deploy to EC2 (only if tests succeed)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}

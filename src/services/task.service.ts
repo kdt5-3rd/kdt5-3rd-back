@@ -75,12 +75,25 @@ export const updateTask = async (userId: number, taskId: number, data: TaskBodyI
     from_address, from_place_name, route_option, is_completed,
   } = data;
 
-  const travel = await getTravelInfoDetailed({
-    from: { lat: from_lat!, lng: from_lng! },
-    to: { lat: latitude!, lng: longitude! },
-    option: getValidRouteOption(route_option),
-    startTime: start_time,
-  });
+  // 출발지 또는 도착지 정보가 누락된 경우: 의미 없는 좌표값 (ex. 0, 0)
+  const hasValidCoords =
+    !!latitude && !!longitude && !!from_lat && !!from_lng &&
+    (latitude !== 0 || longitude !== 0 || from_lat !== 0 || from_lng !== 0);
+
+  let travel = null;
+  if (hasValidCoords) {
+    try {
+      travel = await getTravelInfoDetailed({
+        from: { lat: from_lat!, lng: from_lng! },
+        to: { lat: latitude!, lng: longitude! },
+        option: getValidRouteOption(route_option),
+        startTime: start_time,
+      });
+    } catch (err) {
+      // 로그로만 남기고 진행 (에러 방지 목적)
+      console.error('경로 계산 실패:', err);
+    }
+  }
 
   const updateData: any = {
     title,

@@ -20,12 +20,25 @@ export const createTask = async (userId: number, data: TaskBodyInput) => {
     from_address, from_place_name, route_option,
   } = data;
 
-  const travel = await getTravelInfoDetailed({
-    from: { lat: from_lat!, lng: from_lng! },
-    to: { lat: latitude!, lng: longitude! },
-    option: getValidRouteOption(route_option),
-    startTime: start_time,
-  });
+  // 출발지 또는 도착지 정보가 누락된 경우: 의미 없는 좌표값 (ex. 0, 0)
+  const hasValidCoords =
+    !!latitude && !!longitude && !!from_lat && !!from_lng &&
+    (latitude !== 0 || longitude !== 0 || from_lat !== 0 || from_lng !== 0);
+
+  let travel = null;
+  if (hasValidCoords) {
+    try {
+      travel = await getTravelInfoDetailed({
+        from: { lat: from_lat!, lng: from_lng! },
+        to: { lat: latitude!, lng: longitude! },
+        option: getValidRouteOption(route_option),
+        startTime: start_time,
+      });
+    } catch (err) {
+      // 로그로만 남기고 진행 (에러 방지 목적)
+      console.error('경로 계산 실패:', err);
+    }
+  }
 
   const task = await prisma.task.create({
     data: {
@@ -45,8 +58,9 @@ export const createTask = async (userId: number, data: TaskBodyInput) => {
       route_option: getValidRouteOption(route_option),
       travel_duration: travel?.duration ?? null,
       travel_distance: travel?.distance ?? null,
-      recommended_departure_time: travel?.recommended_departure_time ? new Date(travel.recommended_departure_time) : null,
-      // is_completed, created_at, updated_at은 자동 처리
+      recommended_departure_time: travel?.recommended_departure_time
+        ? new Date(travel.recommended_departure_time)
+        : null,
     },
   });
 
@@ -151,7 +165,15 @@ export const getTasksByDay = async (userId: number, query: DayQueryInput) => {
     },
   });
 
-  return tasks;
+  // 응답 가공: 경로 정보가 없을 경우 메시지 처리, 나머지 컬럼은 그대로 반환
+  return tasks.map((task) => ({
+    ...task,
+    travel_duration: task.travel_duration ?? '경로 정보 없음',
+    travel_distance: task.travel_distance ?? '경로 정보 없음',
+    recommended_departure_time: task.recommended_departure_time
+      ? task.recommended_departure_time.toISOString()
+      : '경로 정보 없음',
+  }));
 };
 
 // 📆 주간 일정 조회

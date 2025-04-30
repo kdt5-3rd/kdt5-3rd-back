@@ -121,6 +121,20 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
     const taskId = Number(req.params.id);
     const task = await getTaskById(taskId);
 
+    const hasValidCoords =
+      task.latitude !== null && task.longitude !== null &&
+      task.from_lat !== null && task.from_lng !== null &&
+      task.latitude !== 0 && task.longitude !== 0 &&
+      task.from_lat !== 0 && task.from_lng !== 0;
+
+    if (!hasValidCoords) {
+      res.status(200).json({
+        success: false,
+        message: '경로 계산에 필요한 출발지 또는 도착지 정보가 없습니다.',
+      });
+      return;
+    }
+
     const result = await getTravelInfoDetailed({
       from: {
         lat: task.from_lat ?? 0,

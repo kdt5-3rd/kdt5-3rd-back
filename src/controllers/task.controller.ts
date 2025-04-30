@@ -14,8 +14,7 @@ import { DayQueryInput, MonthQueryInput, WeekQueryInput } from '../types/task';
 // 📌 일정 생성
 export const createTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
-
+    const userId = req.user!.id;
     const result = await createTask(userId, req.body);
 
     res.status(201).json({
@@ -31,7 +30,7 @@ export const createTaskController = async (req: Request, res: Response, next: Ne
 // 📌 일정 수정
 export const updateTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
+    const userId = req.user!.id;
     const taskId = Number(req.params.id);
 
     const result = await updateTask(userId, taskId, req.body);
@@ -49,7 +48,7 @@ export const updateTaskController = async (req: Request, res: Response, next: Ne
 // 📌 일정 삭제
 export const deleteTaskController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
+    const userId = req.user!.id;
     const taskId = Number(req.params.id);
 
     const result = await deleteTask(userId, taskId);
@@ -67,7 +66,7 @@ export const deleteTaskController = async (req: Request, res: Response, next: Ne
 // 📌 일간 조회
 export const getTasksByDayController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
+    const userId = req.user!.id;
     const query = (req as any).validatedQuery as DayQueryInput; 
     const result = await getTasksByDay(userId, query);
 
@@ -84,7 +83,7 @@ export const getTasksByDayController = async (req: Request, res: Response, next:
 // 📌 주간 조회
 export const getTasksByWeekController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
+    const userId = req.user!.id;
     const query = (req as any).validatedQuery as WeekQueryInput;
     const result = await getTasksByWeek(userId, query);
 
@@ -101,7 +100,7 @@ export const getTasksByWeekController = async (req: Request, res: Response, next
 // 📌 월간 조회
 export const getTasksByMonthController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = 1;
+    const userId = req.user!.id;
     const query = (req as any).validatedQuery as MonthQueryInput;
     const result = await getTasksByMonth(userId, query);
 

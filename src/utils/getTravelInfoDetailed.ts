@@ -12,7 +12,7 @@ export interface Coordinate {
 export interface TravelInput {
     from: Coordinate;      // 출발지 정보
     to: Coordinate;        // 도착지 정보
-    endTime: string;       // 도착 예정 시각 (ISO 문자열)
+    endTime: string;      // 일정 종료 시간 (ISO 문자열)
     option?: string;       // 옵션 별도 분리
 }
 

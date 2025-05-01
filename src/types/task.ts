@@ -84,7 +84,25 @@ export const TaskBodySchema = z.object({
     });
   }
 
-  // ✅ 2. 출발지 좌표 세트 검사
+  // ✅ 2. 출발지 ↔ 목적지 정보 자동 채우기
+  const hasFrom = data.from_lat !== undefined && data.from_lng !== undefined;
+  const hasTo = data.latitude !== undefined && data.longitude !== undefined;
+
+  if (hasFrom && !hasTo) {
+    data.latitude = data.from_lat;
+    data.longitude = data.from_lng;
+    data.address = data.from_address;
+    data.place_name = data.from_place_name;
+  }
+
+  if (!hasFrom && hasTo) {
+    data.from_lat = data.latitude;
+    data.from_lng = data.longitude;
+    data.from_address = data.address;
+    data.from_place_name = data.place_name;
+  }
+
+  // ✅ 3. 출발지 좌표 세트 검사
   const hasFromLat = data.from_lat !== undefined;
   const hasFromLng = data.from_lng !== undefined;
 
@@ -96,7 +114,7 @@ export const TaskBodySchema = z.object({
     });
   }
 
-  // ✅ 3. 목적지 좌표 세트 검사
+  // ✅ 4. 목적지 좌표 세트 검사
   const hasLat = data.latitude !== undefined;
   const hasLng = data.longitude !== undefined;
 

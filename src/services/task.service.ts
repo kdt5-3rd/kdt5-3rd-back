@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 const prisma = new PrismaClient();
 
 const toKst = (date: Date | null) => {
-  return date ? new Date(date.getTime() + 9 * 60 * 60 * 1000) : null;
+  return date ? dayjs(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss') : null;
 };
 
 // 📌 일정 등록

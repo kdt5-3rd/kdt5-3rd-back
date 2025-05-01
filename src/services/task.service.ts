@@ -9,6 +9,7 @@ import {
 import { errorResponse } from '../utils/errorResponse';
 import { ERROR_CODES } from '../constants/errorCodes';
 import { getTravelInfoDetailed } from '../utils/getTravelInfoDetailed';
+import dayjs from 'dayjs';
 
 const prisma = new PrismaClient();
 
@@ -165,15 +166,16 @@ export const deleteTask = async (userId: number, taskId: number) => {
 export const getTasksByDay = async (userId: number, query: DayQueryInput) => {
   const { year, month, day } = query;
 
-  const start = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-  const end = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0));
+  // KST 기준 0시 → UTC로 변환
+  const kstStart = dayjs.tz(`${year}-${month}-${day} 00:00:00`, 'Asia/Seoul').utc().toDate();
+  const kstEnd = dayjs.tz(`${year}-${month}-${day} 23:59:59`, 'Asia/Seoul').utc().toDate();
 
   const tasks = await prisma.task.findMany({
     where: {
       user_id: userId,
       start_time: {
-        gte: start,
-        lt: end,
+        gte: kstStart,
+        lt: kstEnd,
       },
     },
   });
@@ -193,19 +195,17 @@ export const getTasksByDay = async (userId: number, query: DayQueryInput) => {
 export const getTasksByWeek = async (userId: number, query: WeekQueryInput) => {
   const { year, month, week } = query;
 
-  const baseDate = new Date(Date.UTC(year, month - 1, 1));
-  const start = new Date(baseDate);
-  start.setUTCDate((week - 1) * 7 + 1);
+  const weekStartDate = (week - 1) * 7 + 1;
 
-  const end = new Date(start);
-  end.setUTCDate(start.getUTCDate() + 7);
+  const kstStart = dayjs.tz(`${year}-${month}-${weekStartDate} 00:00:00`, 'Asia/Seoul').utc().toDate();
+  const kstEnd = dayjs(kstStart).add(7, 'day').toDate();
 
   const tasks = await prisma.task.findMany({
     where: {
       user_id: userId,
       start_time: {
-        gte: start,
-        lt: end,
+        gte: kstStart,
+        lt: kstEnd,
       },
     },
   });
@@ -217,15 +217,15 @@ export const getTasksByWeek = async (userId: number, query: WeekQueryInput) => {
 export const getTasksByMonth = async (userId: number, query: MonthQueryInput) => {
   const { year, month } = query;
 
-  const start = new Date(Date.UTC(year, month - 1, 1));
-  const end = new Date(Date.UTC(year, month, 1));
+  const kstStart = dayjs.tz(`${year}-${month}-01 00:00:00`, 'Asia/Seoul').utc().toDate();
+  const kstEnd = dayjs(kstStart).add(1, 'month').toDate();
 
   const tasks = await prisma.task.findMany({
     where: {
       user_id: userId,
       start_time: {
-        gte: start,
-        lt: end,
+        gte: kstStart,
+        lt: kstEnd,
       },
     },
   });

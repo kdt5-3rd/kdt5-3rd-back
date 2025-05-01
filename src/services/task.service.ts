@@ -36,7 +36,7 @@ export const createTask = async (userId: number, data: TaskBodyInput) => {
       travel = await getTravelInfoDetailed({
         from: { lat: from_lat!, lng: from_lng! },
         to: { lat: latitude!, lng: longitude! },
-        endTime: end_time!,
+        startTime: start_time!,
         option: getValidRouteOption(route_option),
       });
     } catch (err) {
@@ -92,7 +92,7 @@ export const updateTask = async (userId: number, taskId: number, data: TaskBodyI
         from: { lat: from_lat!, lng: from_lng! },
         to: { lat: latitude!, lng: longitude! },
         option: getValidRouteOption(route_option),
-        endTime: end_time!,
+        startTime: start_time!,
       }); 
     } catch (err) {
       // 로그로만 남기고 진행 (에러 방지 목적)

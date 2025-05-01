@@ -12,7 +12,7 @@ export interface Coordinate {
 export interface TravelInput {
     from: Coordinate;      // 출발지 정보
     to: Coordinate;        // 도착지 정보
-    endTime: string;      // 일정 종료 시간 (ISO 문자열)
+    startTime: string;     // 일정이 시작되는 시간
     option?: string;       // 옵션 별도 분리
 }
 
@@ -32,7 +32,7 @@ export interface TravelInfoResult {
 }
 
 export const getTravelInfoDetailed = async (params: TravelInput): Promise<TravelInfoResult> => {
-  const { from, to, endTime, option } = params;
+  const { from, to, startTime, option } = params;
 
   const response = await axios.get(
     'https://maps.apigw.ntruss.com/map-direction/v1/driving',
@@ -56,7 +56,7 @@ export const getTravelInfoDetailed = async (params: TravelInput): Promise<Travel
   const distance = data.summary.distance;
 
   const recommended_departure_time = new Date(
-    new Date(endTime).getTime() - duration * 1000
+    new Date(startTime).getTime() - duration * 1000
   ).toISOString();
 
   return {

@@ -13,6 +13,10 @@ import dayjs from 'dayjs';
 
 const prisma = new PrismaClient();
 
+const toKst = (date: Date | null) => {
+  return date ? new Date(date.getTime() + 9 * 60 * 60 * 1000) : null;
+};
+
 // 📌 일정 등록
 export const createTask = async (userId: number, data: TaskBodyInput) => {
   const {
@@ -183,6 +187,8 @@ export const getTasksByDay = async (userId: number, query: DayQueryInput) => {
   // 응답 가공: 경로 정보가 없을 경우 메시지 처리, 나머지 컬럼은 그대로 반환
   return tasks.map((task) => ({
     ...task,
+    start_time: toKst(task.start_time),
+    end_time: toKst(task.end_time),
     travel_duration: task.travel_duration ?? '경로 정보 없음',
     travel_distance: task.travel_distance ?? '경로 정보 없음',
     recommended_departure_time: task.recommended_departure_time
@@ -210,7 +216,16 @@ export const getTasksByWeek = async (userId: number, query: WeekQueryInput) => {
     },
   });
 
-  return tasks;
+  return tasks.map((task) => ({
+    ...task,
+    start_time: toKst(task.start_time),
+    end_time: toKst(task.end_time),
+    recommended_departure_time: task.recommended_departure_time
+      ? toKst(task.recommended_departure_time)
+      : '경로 정보 없음',
+    travel_duration: task.travel_duration ?? '경로 정보 없음',
+    travel_distance: task.travel_distance ?? '경로 정보 없음',
+  }));
 };
 
 // 📅 월간 일정 조회
@@ -230,7 +245,16 @@ export const getTasksByMonth = async (userId: number, query: MonthQueryInput) =>
     },
   });
 
-  return tasks;
+  return tasks.map((task) => ({
+    ...task,
+    start_time: toKst(task.start_time),
+    end_time: toKst(task.end_time),
+    recommended_departure_time: task.recommended_departure_time
+      ? toKst(task.recommended_departure_time)
+      : '경로 정보 없음',
+    travel_duration: task.travel_duration ?? '경로 정보 없음',
+    travel_distance: task.travel_distance ?? '경로 정보 없음',
+  }));
 };
 
 // 📌 task id 기반 조회

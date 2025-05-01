@@ -134,6 +134,13 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
       return;
     }
 
+    if (!task.end_time) {
+      return res.status(400).json({
+        success: false,
+        message: '도착 예정 시간이 없어 추천 출발 시간을 계산할 수 없습니다.',
+      });
+    }
+
     const result = await getTravelInfoDetailed({
       from: {
         lat: task.from_lat ?? 0,
@@ -143,8 +150,8 @@ export const getTaskPathController = async (req: Request, res: Response, next: N
         lat: task.latitude ?? 0,
         lng: task.longitude ?? 0,
       },
+      endTime: task.end_time.toISOString(),
       option: task.route_option ?? undefined,
-      startTime: task.start_time.toISOString(),
     });
 
     res.status(200).json({

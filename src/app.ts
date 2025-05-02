@@ -17,7 +17,7 @@ import logger from "./utils/logger";
 // API 요청 제한 수치 설정용 상수
 // 요청 제한 기준 시간, 요청 제한 횟수 설정
 const RATE_LIMIT_WINDOW_MS = 1 * 60 * 1000; // 1분
-const RATE_LIMIT_MAX_CALLS = 30;
+const RATE_LIMIT_MAX_CALLS = 300;
 
 // Express 모듈 호출 (최상단, 위치 절대 손대지 말 것!)
 const app = express();
